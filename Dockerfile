@@ -1,8 +1,6 @@
 FROM alpine:3.3
 
-RUN apk add --no-cache curl git python gcc
-
-COPY ./dash-masternode.sh ./
+RUN apk add --no-cache curl git python gcc py-pip
 
 RUN curl -O https://www.dash.org/binaries/dashcore-0.12.1.0-linux64.tar.gz
 RUN tar xfvz dashcore-0.12.1.0-linux64.tar.gz
@@ -11,14 +9,15 @@ RUN cp dashcore-0.12.1/bin/dash-cli ./
 RUN rm -rf dashcore-0.12.1
 RUN rm -rf dashcore-0.12.1.0-linux64.tar.gz
 
-RUN mkdir -p .dashcore
-RUN cd .dashcore
 RUN git clone https://github.com/dashpay/sentinel.git
-RUN cd sentinel
-RUN pip install virtualenv
-RUN virtualenv venv
-RUN venv/bin/pip install -r requirements.txt
-RUN venv/bin/python bin/sentinel.py
+RUN ls -la
+WORKDIR /sentinel
+RUN pip install -r requirements.txt
 
-EXPOSE
-ENTRYPOINT ["mysql"]
+WORKDIR /
+COPY ./dash-masternode.sh ./
+COPY ./dash-default.conf ./
+
+EXPOSE 9999
+VOLUME ["/root/.dashcore"]
+ENTRYPOINT [ "bash", "dash-masternode.sh" ]
